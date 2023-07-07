@@ -2,17 +2,23 @@
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
 import os
-from flask import Flask, request, jsonify, url_for
+from flask import Flask, request, jsonify, url_for,render_template
 from flask_migrate import Migrate
 from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
 from models import db, User, Personajes, Planetas, Favoritos
+from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required
+
+
+
 #from models import Person
 
 app = Flask(__name__)
 app.url_map.strict_slashes = False
+
+
 
 db_url = os.getenv("DATABASE_URL")
 if db_url is not None:
@@ -25,6 +31,9 @@ MIGRATE = Migrate(app, db)
 db.init_app(app)
 CORS(app)
 setup_admin(app)
+
+app.config['JWT_SECRET_KEY'] = "harryPother"
+jwt = JWTManager(app)
 
 # Handle/serialize errors like a JSON object
 @app.errorhandler(APIException)
@@ -262,6 +271,38 @@ def add_planeta_favorito(planeta_id):
         return jsonify(favorito.serialize()), 201
     else:
         return jsonify({"message": "Planeta not found"}), 404
+    
+   # Ruta para renderizar el formulario de registro
+@app.route('/signup')
+def signup():
+    return render_template('signup.html')
+
+# Ruta para renderizar el formulario de inicio de sesión
+@app.route('/login')
+def login():
+    return render_template('login.html')
+
+# Ruta para autenticar y obtener un token de acceso
+@app.route('/auth/login', methods=['POST'])
+def auth_login():
+    username = request.form.get('username')
+    password = request.form.get('password')
+
+    # Aquí deberías verificar las credenciales del usuario
+    # Si las credenciales son válidas, puedes crear un token de acceso
+    if username == 'usuario' and password == 'contraseña':
+        access_token = create_access_token(identity=username)
+        return jsonify(access_token=access_token), 200
+
+    return jsonify({'message': 'Credenciales inválidas'}), 401
+
+# Ruta protegida que requiere autenticación
+@app.route('/private')
+@jwt_required()
+def private():
+    current_user = get_jwt_identity()
+    return render_template('private.html', username=current_user)
+    
 
     
     
