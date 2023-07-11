@@ -273,6 +273,7 @@ def add_planeta_favorito(planeta_id):
         return jsonify({"message": "Planeta not found"}), 404
     
    # Ruta para renderizar el formulario de registro
+# Ruta para renderizar el formulario de registro
 @app.route('/signup')
 def signup():
     return render_template('signup.html')
@@ -302,7 +303,6 @@ def auth_login():
 def private():
     current_user = get_jwt_identity()
     return render_template('private.html', username=current_user)
-    
 
     
     
