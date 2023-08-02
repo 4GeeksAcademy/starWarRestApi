@@ -317,7 +317,7 @@ def login():
     return jsonify(access_token=access_token)
 
 #crear nuevo usaurio 
-@app.route("/singup", methods=["POST"])
+@app.route("/signup", methods=["POST"])
 def singup():
     request_body = request.json
     user_query = User.query.filter_by(email=request_body["email"]).first()
